@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Top Cryptocurrencies</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    {% load humanize %}
+    <h1>Top Cryptocurrencies</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Name</th>
+                <th>Symbol</th>
+                <th>Price (USD)</th>
+                <th>Market Cap</th>
+                <th>24h Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for coin in cryptocurrencies %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ coin.name }}</td>
+                <td>{{ coin.symbol|upper }}</td>
+                <td>${{ coin.current_price|floatformat:2 }}</td>
+                <td>${{ coin.market_cap|intcomma }}</td> 
+                <td style="color: {% if coin.price_change_percentage_24h >= 0 %} #008000 {% else %} #ff0000 {% endif %}; font-weight: bold;"> 
+                    {{ coin.price_change_percentage_24h|floatformat:2 }}%
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
