@@ -19,7 +19,7 @@ A Django-based cryptocurrency tracking application that displays real-time infor
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/YourUsername/crypto-tracker.git
+git clone https://github.com/Gus-Fuentes/crypto-tracker.git
 cd crypto-tracker
 ```
 
