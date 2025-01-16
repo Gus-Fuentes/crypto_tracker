@@ -17,7 +17,7 @@ A Django-based cryptocurrency tracking application that displays real-time infor
 The easiest way to run the application is to pull it directly from Docker Hub:
 
 ```bash
-docker run -p 80:80 gusfuentes/crypto-tracker:latest
+docker run -p 8000:8000 gusfuentes/crypto-tracker:latest
 ```
 
 The application will be available at `http://localhost`.
@@ -43,7 +43,7 @@ docker build -t crypto-tracker .
 
 3. Run the container:
 ```bash
-docker run -p 80:80 crypto-tracker
+docker run -p 8000:8000 crypto-tracker
 ```
 
 ## Manual Installation (Without Docker)
