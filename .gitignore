@@ -39,3 +39,8 @@ ENV/
 
 # Environment variables
 .env
+
+# Docker
+.docker/
+docker-compose.override.yml
+postgres_data/

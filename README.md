@@ -8,14 +8,47 @@ A Django-based cryptocurrency tracking application that displays real-time infor
 - Price change percentage with color indicators (green for positive, red for negative)
 - Market cap information
 - Clean and responsive UI
+- Docker support for easy deployment
 
-## Prerequisites
+## Running with Docker
 
-- Python 3.8+
-- Django
-- requests library
+### Option 1: Pull from Docker Hub (Recommended)
 
-## Installation
+The easiest way to run the application is to pull it directly from Docker Hub:
+
+```bash
+docker run -p 80:80 gusfuentes/crypto-tracker:latest
+```
+
+The application will be available at `http://localhost`.
+
+You can also specify a custom port using the PORT environment variable:
+
+```bash
+docker run -e PORT=8000 -p 8000:8000 gusfuentes/crypto-tracker:latest
+```
+
+### Option 2: Build Locally
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Gus-Fuentes/crypto-tracker.git
+cd crypto-tracker
+```
+
+2. Build the Docker image:
+```bash
+docker build -t crypto-tracker .
+```
+
+3. Run the container:
+```bash
+docker run -p 80:80 crypto-tracker
+```
+
+## Manual Installation (Without Docker)
+
+If you prefer to run the application without Docker:
 
 1. Clone the repository:
 ```bash
@@ -43,6 +76,14 @@ python manage.py migrate
 ```bash
 python manage.py runserver
 ```
+
+The application will be available at `http://localhost:8000`.
+
+## Environment Variables
+
+- `PORT`: The port on which the application runs (default: 80)
+- `DEBUG`: Enable/disable debug mode (default: True)
+- `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hosts
 
 ## Usage
 
