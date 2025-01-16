@@ -20,12 +20,12 @@ The easiest way to run the application is to pull it directly from Docker Hub:
 docker run -p 8000:8000 gusfuentes/crypto-tracker:latest
 ```
 
-The application will be available at `http://localhost`.
+The application will be available at `http://localhost:8000`.
 
-You can also specify a custom port using the PORT environment variable:
+You can also specify a custom port by overriding the CMD:
 
 ```bash
-docker run -e PORT=8000 -p 8000:8000 gusfuentes/crypto-tracker:latest
+docker run -p 3000:3000 gusfuentes/crypto-tracker:latest 0.0.0.0:3000
 ```
 
 ### Option 2: Build Locally
@@ -44,6 +44,11 @@ docker build -t crypto-tracker .
 3. Run the container:
 ```bash
 docker run -p 8000:8000 crypto-tracker
+```
+
+Or with a custom port:
+```bash
+docker run -p 3000:3000 crypto-tracker 0.0.0.0:3000
 ```
 
 ## Manual Installation (Without Docker)
@@ -81,7 +86,7 @@ The application will be available at `http://localhost:8000`.
 
 ## Environment Variables
 
-- `PORT`: The port on which the application runs (default: 80)
+- `PORT`: Default port for the container (default: 8000)
 - `DEBUG`: Enable/disable debug mode (default: True)
 - `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hosts
 

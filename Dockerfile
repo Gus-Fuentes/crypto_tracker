@@ -6,6 +6,7 @@ WORKDIR /app
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PORT 8000
 
 # Install system dependencies
 RUN apt-get update \
@@ -21,8 +22,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Expose port
-EXPOSE 8000
+# Expose default port
+EXPOSE ${PORT}
 
-# Run the application with 0.0.0.0 to bind to all interfaces
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000", "--noreload"]
+# Run the application with default port
+ENTRYPOINT ["python", "manage.py", "runserver", "--noreload"]
+CMD ["0.0.0.0:8000"]
