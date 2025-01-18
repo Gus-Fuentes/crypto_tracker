@@ -17,7 +17,7 @@ The application requires PostgreSQL and Redis services, so the easiest way to ru
 1. Clone the repository:
 ```bash
 git clone https://github.com/Gus-Fuentes/crypto-tracker.git
-cd crypto-tracker
+cd crypto_tracker
 ```
 
 2. Start all services:
@@ -38,7 +38,7 @@ If you prefer to run the application without Docker, you'll need to have Postgre
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Gus-Fuentes/crypto-tracker.git
+git clone https://github.com/Gus-Fuentes/crypto_tracker.git
 cd crypto-tracker
 ```
 
