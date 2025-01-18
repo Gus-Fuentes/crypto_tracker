@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+
+{% block title %}Crypto Tracker - Market Overview{% endblock %}
+
+{% block content %}
+<!-- Market Overview Section -->
+<div class="market-stats mb-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h5>Total Market Cap</h5>
+                    <h3 class="mb-0">${{ market_stats.total_market_cap|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h5>24h Volume</h5>
+                    <h3 class="mb-0">${{ market_stats.total_volume_24h|intcomma }}</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h5>BTC Dominance</h5>
+                    <h3 class="mb-0">{{ market_stats.btc_dominance|floatformat:2 }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Cryptocurrencies Table -->
+<div class="card">
+    <div class="card-header bg-transparent border-0">
+        <h4 class="mb-0">Top Cryptocurrencies</h4>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">24h Change</th>
+                        <th scope="col">Market Cap</th>
+                        <th scope="col">Volume (24h)</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crypto in cryptocurrencies %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'coins:crypto_detail' crypto.symbol %}" class="text-decoration-none">
+                                {{ crypto.name }} ({{ crypto.symbol }})
+                            </a>
+                        </td>
+                        <td>${{ crypto.current_price|floatformat:2|intcomma }}</td>
+                        <td class="{% if crypto.price_change_24h > 0 %}positive-change{% else %}negative-change{% endif %}">
+                            {{ crypto.price_change_24h|floatformat:2 }}%
+                        </td>
+                        <td>${{ crypto.market_cap|intcomma }}</td>
+                        <td>${{ crypto.volume_24h|intcomma }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary toggle-watchlist" 
+                                    data-symbol="{{ crypto.symbol }}">
+                                <i class="fas fa-star {% if crypto.symbol in watchlist_symbols %}text-warning{% endif %}"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container for Notifications -->
+<div id="toast-container" class="position-fixed bottom-0 end-0 p-3"></div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .market-stats {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .table th {
+        border-top: none;
+        font-weight: 600;
+    }
+    
+    .positive-change {
+        color: #28a745;
+    }
+    
+    .negative-change {
+        color: #dc3545;
+    }
+    
+    .toggle-watchlist {
+        transition: all 0.2s;
+    }
+    
+    .toggle-watchlist:hover {
+        transform: scale(1.1);
+    }
+    
+    .toggle-watchlist .fa-star {
+        transition: color 0.3s;
+    }
+    
+    .toggle-watchlist .fa-star.text-warning {
+        color: #ffc107 !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/watchlist.js' %}"></script>
+{% endblock %}

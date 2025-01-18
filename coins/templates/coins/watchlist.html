@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}My Watchlist - Crypto Tracker{% endblock %}
+
+{% block content %}
+<!-- Watchlist Header -->
+<div class="watchlist-header mb-4">
+    <div class="container">
+        <h2 class="mb-0"><i class="fas fa-star me-2"></i>My Watchlist</h2>
+    </div>
+</div>
+
+<!-- Watchlist Content -->
+<div class="container">
+    {% if watchlist %}
+        <div class="row">
+            {% for item in watchlist %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card crypto-card">
+                    <div class="card-body">
+                        <button class="btn btn-sm btn-outline-danger remove-btn" 
+                                data-symbol="{{ item.cryptocurrency.symbol }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        <h5 class="card-title mb-3">
+                            <a href="{% url 'coins:crypto_detail' item.cryptocurrency.symbol %}" 
+                               class="text-decoration-none text-dark">
+                                {{ item.cryptocurrency.name }}
+                                <small class="text-muted">({{ item.cryptocurrency.symbol }})</small>
+                            </a>
+                        </h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h4 class="mb-0">${{ item.cryptocurrency.current_price|floatformat:2|intcomma }}</h4>
+                                <small class="{% if item.cryptocurrency.price_change_24h > 0 %}positive-change{% else %}negative-change{% endif %}">
+                                    {{ item.cryptocurrency.price_change_24h|floatformat:2 }}%
+                                </small>
+                            </div>
+                            <canvas class="mini-chart" data-symbol="{{ item.cryptocurrency.symbol }}"></canvas>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <small class="text-muted d-block">Market Cap</small>
+                                    <span>${{ item.cryptocurrency.market_cap|intcomma }}</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded">
+                                    <small class="text-muted d-block">24h Volume</small>
+                                    <span>${{ item.cryptocurrency.volume_24h|intcomma }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body empty-watchlist">
+                <i class="fas fa-star mb-3"></i>
+                <h4>Your watchlist is empty</h4>
+                <p class="text-muted mb-4">Start adding cryptocurrencies to track their prices and performance.</p>
+                <a href="{% url 'coins:home' %}" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Browse Cryptocurrencies
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .watchlist-header {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .empty-watchlist {
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .empty-watchlist i {
+        font-size: 48px;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+
+    .crypto-card {
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .crypto-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .mini-chart {
+        height: 60px;
+        width: 120px;
+    }
+
+    .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .crypto-card:hover .remove-btn {
+        opacity: 1;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove from watchlist
+    document.querySelectorAll('.remove-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const symbol = this.dataset.symbol;
+            const card = this.closest('.col-md-6');
+            
+            fetch(`/coins/api/watchlist/toggle/${symbol}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'removed') {
+                    card.remove();
+                    // If no more cards, show empty state
+                    if (document.querySelectorAll('.crypto-card').length === 0) {
+                        location.reload();
+                    }
+                }
+            });
+        });
+    });
+
+    // Create mini charts
+    function createMiniChart(canvas, symbol) {
+        fetch(`/coins/api/historical/${symbol}/?timeframe=24h`)
+            .then(response => response.json())
+            .then(data => {
+                const ctx = canvas.getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.timestamps,
+                        datasets: [{
+                            data: data.prices,
+                            borderColor: data.prices[0] < data.prices[data.prices.length - 1] 
+                                ? '#2ecc71' : '#e74c3c',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Initialize all mini charts
+    document.querySelectorAll('.mini-chart').forEach(canvas => {
+        createMiniChart(canvas, canvas.dataset.symbol);
+    });
+});
+</script>
+{% endblock %}

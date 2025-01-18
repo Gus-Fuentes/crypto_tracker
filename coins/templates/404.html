@@ -1,0 +1,98 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Page Not Found - Crypto Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 20px;
+        margin: 2rem 0;
+    }
+
+    .error-code {
+        font-size: 120px;
+        font-weight: bold;
+        color: var(--primary-color);
+        line-height: 1;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .error-icon {
+        font-size: 64px;
+        color: var(--warning-color);
+        margin-bottom: 1.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .error-message {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .error-description {
+        color: #7f8c8d;
+        margin-bottom: 2rem;
+        max-width: 500px;
+    }
+
+    .action-buttons .btn {
+        margin: 0.5rem;
+        min-width: 150px;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    .coin {
+        position: absolute;
+        opacity: 0.1;
+        z-index: 0;
+    }
+
+    .coin-1 { top: 10%; left: 10%; font-size: 48px; transform: rotate(-15deg); }
+    .coin-2 { top: 20%; right: 15%; font-size: 36px; transform: rotate(25deg); }
+    .coin-3 { bottom: 15%; left: 20%; font-size: 42px; transform: rotate(-30deg); }
+    .coin-4 { bottom: 25%; right: 10%; font-size: 54px; transform: rotate(15deg); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-container position-relative">
+        <!-- Background Coins -->
+        <i class="fas fa-coins coin coin-1"></i>
+        <i class="fas fa-coins coin coin-2"></i>
+        <i class="fas fa-coins coin coin-3"></i>
+        <i class="fas fa-coins coin coin-4"></i>
+
+        <div class="error-content">
+            <div class="error-code">404</div>
+            <i class="fas fa-search error-icon"></i>
+            <h1 class="error-message">Page Not Found</h1>
+            <p class="error-description">
+                Oops! It seems like the cryptocurrency you're looking for has gone into stealth mode.
+                Don't worry, there are plenty of other coins to track!
+            </p>
+            <div class="action-buttons">
+                <a href="{% url 'home' %}" class="btn btn-primary">
+                    <i class="fas fa-home me-2"></i>Back to Markets
+                </a>
+                <a href="{% url 'watchlist' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-star me-2"></i>View Watchlist
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,358 @@
+{% extends 'base/base.html' %}
+{% load humanize %}
+
+{% block title %}{{ crypto.name }} ({{ crypto.symbol }}) Price and Charts{% endblock %}
+
+{% block extra_css %}
+<style>
+    .price-header {
+        background: linear-gradient(135deg, #1a237e, #0d47a1);
+        color: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+
+    .price-change-pill {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+    }
+
+    .price-change-positive {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+    }
+
+    .price-change-negative {
+        background-color: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+    }
+
+    .chart-container {
+        min-height: 400px;
+    }
+
+    .timeframe-selector {
+        background: white;
+        border-radius: 25px;
+        padding: 5px;
+        display: inline-flex;
+        margin-bottom: 20px;
+    }
+
+    .timeframe-selector button {
+        border-radius: 20px;
+        padding: 5px 15px;
+        border: none;
+        background: transparent;
+        color: #666;
+        transition: all 0.3s ease;
+    }
+
+    .timeframe-selector button.active {
+        background: #1a237e;
+        color: white;
+    }
+
+    .market-data-card {
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+
+    .market-data-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Price Header -->
+<div class="price-header">
+    <div class="container">
+        <div class="d-flex align-items-center mb-4">
+            {% if crypto.image_url %}
+                <img src="{{ crypto.image_url }}" alt="{{ crypto.symbol }}" class="crypto-icon me-3" style="width: 48px; height: 48px;">
+            {% else %}
+                <i class="fas fa-coins fa-2x me-3"></i>
+            {% endif %}
+            <div>
+                <h1 class="mb-0">{{ crypto.name }}</h1>
+                <span class="text-light">{{ crypto.symbol }}</span>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h2 class="mb-3">${{ crypto.current_price|floatformat:2|intcomma }}</h2>
+                <span class="price-change-pill {% if crypto.price_change_24h > 0 %}price-change-positive{% else %}price-change-negative{% endif %}">
+                    {% if crypto.price_change_24h > 0 %}+{% endif %}{{ crypto.price_change_24h|floatformat:2 }}%
+                </span>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button class="btn btn-light me-2 toggle-watchlist" data-symbol="{{ crypto.symbol }}">
+                    <i class="fas fa-star"></i> Add to Watchlist
+                </button>
+                <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#alertModal">
+                    <i class="fas fa-bell"></i> Set Alert
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Price Chart -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="card-title mb-0">Price Chart</h4>
+                <div class="timeframe-selector">
+                    <button class="active" data-timeframe="1h">1H</button>
+                    <button data-timeframe="24h">24H</button>
+                    <button data-timeframe="7d">7D</button>
+                    <button data-timeframe="30d">30D</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Market Data -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card market-data-card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Market Cap</h5>
+                    <h3>${{ crypto.market_cap|intcomma }}</h3>
+                    <small class="text-muted">Rank #{{ forloop.counter }}</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card market-data-card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">24h Volume</h5>
+                    <h3>${{ crypto.volume_24h|intcomma }}</h3>
+                    <small class="text-muted">Updated {{ crypto.last_updated|timesince }} ago</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card market-data-card">
+                <div class="card-body">
+                    <h5 class="card-title text-muted">Price Change (24h)</h5>
+                    <h3 class="{% if crypto.price_change_24h > 0 %}text-success{% else %}text-danger{% endif %}">
+                        {% if crypto.price_change_24h > 0 %}+{% endif %}{{ crypto.price_change_24h|floatformat:2 }}%
+                    </h3>
+                    <small class="text-muted">Volatility Index: High</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historical Data Table -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Historical Data</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in historical_data %}
+                        <tr>
+                            <td>{{ data.timestamp|date:"Y-m-d H:i" }}</td>
+                            <td>${{ data.price|floatformat:2|intcomma }}</td>
+                            <td class="{% if data.price > crypto.current_price %}text-success{% else %}text-danger{% endif %}">
+                                {% with change=data.price|subtract:crypto.current_price|percentage:crypto.current_price %}
+                                    {% if change > 0 %}+{% endif %}{{ change|floatformat:2 }}%
+                                {% endwith %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Price Alert Modal -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Price Alert for {{ crypto.symbol }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="alertForm">
+                    <div class="mb-3">
+                        <label class="form-label">Alert Type</label>
+                        <select class="form-select" name="alert_type" required>
+                            <option value="above">Price Above</option>
+                            <option value="below">Price Below</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Target Price ($)</label>
+                        <input type="number" class="form-control" name="target_price" 
+                               step="0.00000001" required 
+                               value="{{ crypto.current_price }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createAlert">Create Alert</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize price chart
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    let priceChart;
+
+    function createChart(timeframe) {
+        fetch(`/api/cryptocurrencies/{{ crypto.id }}/history/?interval=${timeframe}`)
+            .then(response => response.json())
+            .then(data => {
+                const chartData = {
+                    labels: data.map(item => new Date(item.timestamp).toLocaleString()),
+                    datasets: [{
+                        label: '{{ crypto.symbol }} Price',
+                        data: data.map(item => item.price),
+                        borderColor: '#1a237e',
+                        backgroundColor: 'rgba(26, 35, 126, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                };
+
+                if (priceChart) {
+                    priceChart.destroy();
+                }
+
+                priceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `$${context.parsed.y.toFixed(2)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+    }
+
+    // Initialize with 24h timeframe
+    createChart('24h');
+
+    // Handle timeframe selection
+    document.querySelectorAll('.timeframe-selector button').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('.timeframe-selector button').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            createChart(this.dataset.timeframe);
+        });
+    });
+
+    // Handle watchlist toggle
+    document.querySelector('.toggle-watchlist').addEventListener('click', function() {
+        fetch(`/api/watchlist/toggle/{{ crypto.symbol }}/`)
+            .then(response => response.json())
+            .then(data => {
+                this.classList.toggle('active', data.status === 'added');
+                const icon = this.querySelector('i');
+                icon.classList.toggle('text-warning', data.status === 'added');
+            });
+    });
+
+    // Handle price alert creation
+    document.getElementById('createAlert').addEventListener('click', function() {
+        const form = document.getElementById('alertForm');
+        const formData = new FormData(form);
+        
+        fetch(`/api/alerts/create/{{ crypto.symbol }}/`, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'created') {
+                    bootstrap.Modal.getInstance(document.getElementById('alertModal')).hide();
+                    form.reset();
+                    // Show success message
+                    const toast = new bootstrap.Toast(document.createElement('div'));
+                    toast.show();
+                }
+            });
+    });
+
+    // Real-time price updates
+    function updatePrice() {
+        fetch(`/api/cryptocurrencies/{{ crypto.id }}/`)
+            .then(response => response.json())
+            .then(data => {
+                const priceElement = document.querySelector('.price-header h2');
+                const changeElement = document.querySelector('.price-change-pill');
+                
+                // Animate price changes
+                const oldPrice = parseFloat(priceElement.textContent.replace('$', '').replace(',', ''));
+                const newPrice = parseFloat(data.current_price);
+                
+                if (oldPrice !== newPrice) {
+                    priceElement.classList.add(newPrice > oldPrice ? 'price-up' : 'price-down');
+                    setTimeout(() => priceElement.classList.remove('price-up', 'price-down'), 1000);
+                }
+                
+                priceElement.textContent = '$' + new Intl.NumberFormat('en-US').format(newPrice);
+                changeElement.textContent = `${data.price_change_24h > 0 ? '+' : ''}${data.price_change_24h.toFixed(2)}%`;
+                changeElement.className = `price-change-pill ${data.price_change_24h > 0 ? 'price-change-positive' : 'price-change-negative'}`;
+            });
+    }
+
+    // Update price every 10 seconds
+    setInterval(updatePrice, 10000);
+});
+</script>
+{% endblock %}

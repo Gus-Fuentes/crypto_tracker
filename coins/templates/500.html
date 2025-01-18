@@ -1,0 +1,138 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Server Error - Crypto Tracker{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        min-height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%);
+        border-radius: 20px;
+        margin: 2rem 0;
+    }
+
+    .error-code {
+        font-size: 120px;
+        font-weight: bold;
+        color: var(--danger-color);
+        line-height: 1;
+        text-shadow: 2px 2px 4px rgba(231, 76, 60, 0.2);
+        margin-bottom: 1rem;
+    }
+
+    .error-icon {
+        font-size: 64px;
+        color: var(--danger-color);
+        margin-bottom: 1.5rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .error-message {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+    }
+
+    .error-description {
+        color: #7f8c8d;
+        margin-bottom: 2rem;
+        max-width: 500px;
+    }
+
+    .action-buttons .btn {
+        margin: 0.5rem;
+        min-width: 150px;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .chart {
+        position: absolute;
+        opacity: 0.1;
+        z-index: 0;
+        color: var(--danger-color);
+    }
+
+    .chart-1 { top: 15%; left: 10%; font-size: 48px; transform: rotate(-15deg); }
+    .chart-2 { top: 25%; right: 15%; font-size: 36px; transform: rotate(25deg); }
+    .chart-3 { bottom: 20%; left: 20%; font-size: 42px; transform: rotate(-30deg); }
+    .chart-4 { bottom: 30%; right: 10%; font-size: 54px; transform: rotate(15deg); }
+
+    .market-crash {
+        position: absolute;
+        width: 100%;
+        height: 100px;
+        bottom: 0;
+        left: 0;
+        opacity: 0.1;
+        overflow: hidden;
+    }
+
+    .crash-line {
+        position: absolute;
+        width: 2px;
+        background: var(--danger-color);
+        animation: crash 3s ease-in infinite;
+    }
+
+    .crash-line:nth-child(1) { left: 15%; height: 60%; animation-delay: 0.2s; }
+    .crash-line:nth-child(2) { left: 35%; height: 80%; animation-delay: 0.4s; }
+    .crash-line:nth-child(3) { left: 55%; height: 70%; animation-delay: 0.6s; }
+    .crash-line:nth-child(4) { left: 75%; height: 90%; animation-delay: 0.8s; }
+    .crash-line:nth-child(5) { left: 90%; height: 75%; animation-delay: 1.0s; }
+
+    @keyframes crash {
+        0% { transform: translateY(-100%); }
+        50% { transform: translateY(0); }
+        100% { transform: translateY(-100%); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="error-container position-relative">
+        <!-- Background Charts -->
+        <i class="fas fa-chart-line chart chart-1"></i>
+        <i class="fas fa-chart-bar chart chart-2"></i>
+        <i class="fas fa-chart-pie chart chart-3"></i>
+        <i class="fas fa-chart-area chart chart-4"></i>
+
+        <!-- Animated Market Crash -->
+        <div class="market-crash">
+            <div class="crash-line"></div>
+            <div class="crash-line"></div>
+            <div class="crash-line"></div>
+            <div class="crash-line"></div>
+            <div class="crash-line"></div>
+        </div>
+
+        <div class="error-content">
+            <div class="error-code">500</div>
+            <i class="fas fa-exclamation-triangle error-icon"></i>
+            <h1 class="error-message">Server Error</h1>
+            <p class="error-description">
+                Looks like our servers are experiencing a temporary market crash!
+                Don't panic - our team of crypto experts is working to restore service.
+                Please try again in a few moments.
+            </p>
+            <div class="action-buttons">
+                <button onclick="window.location.reload()" class="btn btn-danger">
+                    <i class="fas fa-sync-alt me-2"></i>Try Again
+                </button>
+                <a href="{% url 'home' %}" class="btn btn-outline-danger">
+                    <i class="fas fa-home me-2"></i>Back to Markets
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

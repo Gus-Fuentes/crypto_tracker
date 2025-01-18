@@ -14,10 +14,32 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
+from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework import routers
+from coins.views import (
+    CryptocurrencyViewSet,
+    WatchlistViewSet,
+    PriceAlertViewSet
+)
+from coins.views.main_views import toggle_watchlist
+
+# Create a router for our API
+router = routers.DefaultRouter()
+router.register(r'cryptocurrencies', CryptocurrencyViewSet, basename='cryptocurrency')
+router.register(r'watchlist', WatchlistViewSet, basename='watchlist')
+router.register(r'alerts', PriceAlertViewSet, basename='alert')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('coins.urls')),
-]
+    path('api/', include(router.urls)),
+    path('api/watchlist/toggle/<str:symbol>/', toggle_watchlist, name='toggle_watchlist'),
+    path('api-auth/', include('rest_framework.urls')),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Custom error handlers
+handler404 = 'coins.views.error_views.handler404'
+handler500 = 'coins.views.error_views.handler500'
