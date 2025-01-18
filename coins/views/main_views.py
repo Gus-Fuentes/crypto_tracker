@@ -28,19 +28,20 @@ class PriceAlertViewSet(viewsets.ModelViewSet):
 
 def home(request):
     crypto_service = CryptoDataService()
-    # Fetch and update cryptocurrency data
-    crypto_service.fetch_top_cryptocurrencies()
     
-    # Get all cryptocurrencies from the database
-    all_cryptos = Cryptocurrency.objects.all()
-    cryptocurrencies = all_cryptos.order_by('-market_cap')[:10]
+    # Get cached cryptocurrency data
+    all_cryptos = crypto_service.get_cached_data()
+    if not all_cryptos:
+        all_cryptos = Cryptocurrency.objects.all()
+    
+    cryptocurrencies = sorted(all_cryptos, key=lambda x: x.market_cap or 0, reverse=True)[:10]
     
     # Calculate market statistics
-    total_market_cap = all_cryptos.aggregate(total=Sum('market_cap'))['total'] or 0
-    total_volume_24h = all_cryptos.aggregate(total=Sum('volume_24h'))['total'] or 0
+    total_market_cap = sum(c.market_cap or 0 for c in all_cryptos)
+    total_volume_24h = sum(c.volume_24h or 0 for c in all_cryptos)
     
     # Calculate BTC dominance
-    btc = all_cryptos.filter(symbol='BTC').first()
+    btc = next((c for c in all_cryptos if c.symbol == 'BTC'), None)
     btc_dominance = (btc.market_cap / total_market_cap * 100) if btc and total_market_cap > 0 else 0
     
     # Get watchlist symbols for the current user
@@ -53,11 +54,9 @@ def home(request):
     
     context = {
         'cryptocurrencies': cryptocurrencies,
-        'market_stats': {
-            'total_market_cap': total_market_cap,
-            'total_volume_24h': total_volume_24h,
-            'btc_dominance': btc_dominance,
-        },
+        'total_market_cap': total_market_cap,
+        'total_volume_24h': total_volume_24h,
+        'btc_dominance': btc_dominance,
         'watchlist_symbols': watchlist_symbols,
     }
     

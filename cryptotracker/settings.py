@@ -131,6 +131,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+# Use WhiteNoise for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -167,9 +170,6 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 handler404 = 'coins.views.error_views.handler404'
 handler500 = 'coins.views.error_views.handler500'
 
-# Static files storage
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
 # Logging configuration
 LOGGING = {
     'version': 1,
@@ -186,3 +186,16 @@ LOGGING = {
         },
     },
 }
+
+# Cache configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://redis:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+CACHE_TTL = 60 * 5  # Cache for 5 minutes

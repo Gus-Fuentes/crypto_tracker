@@ -2,6 +2,8 @@ import requests
 import ccxt
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
+from django.core.cache import cache
+from django.conf import settings
 from .models import Cryptocurrency, PriceHistory
 
 def safe_decimal(value, default=0):
@@ -15,18 +17,34 @@ def safe_decimal(value, default=0):
 
 class CryptoDataService:
     """Service for fetching and managing cryptocurrency data"""
+    CACHE_KEY = 'crypto_data'
     
     def __init__(self):
         # Initialize the Binance exchange (can be changed to other exchanges)
         self.exchange = ccxt.binance()
     
+    def get_cached_data(self):
+        """Get cryptocurrency data from cache or fetch if not available"""
+        cached_data = cache.get(self.CACHE_KEY)
+        if cached_data is not None:
+            return cached_data
+            
+        # If not in cache, fetch and store in cache
+        self.fetch_top_cryptocurrencies()
+        return cache.get(self.CACHE_KEY)
+    
     def fetch_top_cryptocurrencies(self, limit=100):
         """Fetch top cryptocurrencies by market cap"""
         try:
+            # Check if we need to update the cache
+            if cache.get(self.CACHE_KEY) is not None:
+                return
+                
             # Fetch market data from exchange
             markets = self.exchange.fetch_tickers()
             
             # Process and update each cryptocurrency
+            updated_cryptos = []
             for symbol, data in markets.items():
                 if not symbol.endswith('/USDT'):  # Only process USDT pairs
                     continue
@@ -38,7 +56,7 @@ class CryptoDataService:
                 crypto, created = Cryptocurrency.objects.update_or_create(
                     symbol=base_symbol,
                     defaults={
-                        'name': base_symbol,  # Can be enhanced with a name mapping
+                        'name': base_symbol,
                         'current_price': safe_decimal(data.get('last')),
                         'market_cap': safe_decimal(data.get('quoteVolume')),
                         'volume_24h': safe_decimal(data.get('baseVolume')),
@@ -46,20 +64,23 @@ class CryptoDataService:
                         'last_updated': timezone.now(),
                     }
                 )
+                updated_cryptos.append(crypto)
                 
                 # Store historical price data
                 if data.get('last'):
                     PriceHistory.objects.create(
                         cryptocurrency=crypto,
-                        timestamp=timezone.now(),
-                        price=safe_decimal(data['last']),
-                        interval='1h'
+                        price=safe_decimal(data.get('last')),
+                        timestamp=timezone.now()
                     )
-                
-            return True
+            
+            # Cache the results
+            cache.set(self.CACHE_KEY, updated_cryptos, timeout=settings.CACHE_TTL)
+            return updated_cryptos
+            
         except Exception as e:
-            print(f"Error fetching cryptocurrency data: [{type(e)}] {str(e)}")
-            return False
+            print(f"Error fetching cryptocurrency data: {e}")
+            return []
     
     def fetch_historical_data(self, symbol, timeframe='1h', limit=168):
         """Fetch historical price data for a specific cryptocurrency"""
