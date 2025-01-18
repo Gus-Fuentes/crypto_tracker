@@ -10,25 +10,9 @@ A Django-based cryptocurrency tracking application that displays real-time infor
 - Clean and responsive UI
 - Docker support for easy deployment
 
-## Running with Docker
+## Quick Start with Docker Compose
 
-### Option 1: Pull from Docker Hub (Recommended)
-
-The easiest way to run the application is to pull it directly from Docker Hub:
-
-```bash
-docker run -p 8000:8000 gusfuentes/crypto-tracker:latest
-```
-
-The application will be available at `http://localhost:8000`.
-
-You can also specify a custom port by overriding the CMD:
-
-```bash
-docker run -p 3000:3000 gusfuentes/crypto-tracker:latest 0.0.0.0:3000
-```
-
-### Option 2: Build Locally
+The application requires PostgreSQL and Redis services, so the easiest way to run it is using Docker Compose:
 
 1. Clone the repository:
 ```bash
@@ -36,24 +20,21 @@ git clone https://github.com/Gus-Fuentes/crypto-tracker.git
 cd crypto-tracker
 ```
 
-2. Build the Docker image:
+2. Start all services:
 ```bash
-docker build -t crypto-tracker .
+docker-compose up -d
 ```
 
-3. Run the container:
-```bash
-docker run -p 8000:8000 crypto-tracker
-```
+The application will be available at `http://localhost:8000`.
 
-Or with a custom port:
+3. Create an admin user (optional):
 ```bash
-docker run -p 3000:3000 crypto-tracker 0.0.0.0:3000
+docker-compose exec web python manage.py createsuperuser
 ```
 
 ## Manual Installation (Without Docker)
 
-If you prefer to run the application without Docker:
+If you prefer to run the application without Docker, you'll need to have PostgreSQL and Redis installed locally:
 
 1. Clone the repository:
 ```bash
@@ -72,12 +53,16 @@ source venv/bin/activate  # On Windows use: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Run migrations:
+4. Set up your PostgreSQL database and update settings.py with your database credentials
+
+5. Start Redis locally (installation depends on your OS)
+
+6. Run migrations:
 ```bash
 python manage.py migrate
 ```
 
-5. Start the development server:
+7. Start the development server:
 ```bash
 python manage.py runserver
 ```
@@ -86,13 +71,49 @@ The application will be available at `http://localhost:8000`.
 
 ## Environment Variables
 
-- `PORT`: Default port for the container (default: 8000)
 - `DEBUG`: Enable/disable debug mode (default: True)
 - `DJANGO_ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `POSTGRES_DB`: PostgreSQL database name (default: postgres)
+- `POSTGRES_USER`: PostgreSQL username (default: postgres)
+- `POSTGRES_PASSWORD`: PostgreSQL password (default: postgres)
+- `REDIS_URL`: Redis connection URL (default: redis://redis:6379/1)
 
-## Usage
+## Common Commands
 
-Visit `http://localhost:8000` in your web browser to view the cryptocurrency tracker.
+```bash
+# Start all services
+docker-compose up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f
+
+# Restart the web application
+docker-compose restart web
+
+# Run database migrations
+docker-compose exec web python manage.py migrate
+```
+
+## Troubleshooting
+
+If the market data isn't showing:
+1. Make sure all services are running:
+```bash
+docker-compose ps
+```
+
+2. Check the logs for errors:
+```bash
+docker-compose logs
+```
+
+3. Restart the services:
+```bash
+docker-compose restart
+```
 
 ## Contributing
 

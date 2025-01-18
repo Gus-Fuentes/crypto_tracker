@@ -32,8 +32,12 @@ def home(request):
     # Get cached cryptocurrency data
     all_cryptos = crypto_service.get_cached_data()
     if not all_cryptos:
-        all_cryptos = Cryptocurrency.objects.all()
+        # If no cached data, fetch it
+        all_cryptos = crypto_service.fetch_top_cryptocurrencies()
+        if not all_cryptos:
+            all_cryptos = Cryptocurrency.objects.all()
     
+    # Sort by market cap and get top 10
     cryptocurrencies = sorted(all_cryptos, key=lambda x: x.market_cap or 0, reverse=True)[:10]
     
     # Calculate market statistics

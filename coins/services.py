@@ -36,10 +36,6 @@ class CryptoDataService:
     def fetch_top_cryptocurrencies(self, limit=100):
         """Fetch top cryptocurrencies by market cap"""
         try:
-            # Check if we need to update the cache
-            if cache.get(self.CACHE_KEY) is not None:
-                return
-                
             # Fetch market data from exchange
             markets = self.exchange.fetch_tickers()
             
@@ -66,7 +62,7 @@ class CryptoDataService:
                 )
                 updated_cryptos.append(crypto)
                 
-                # Store historical price data
+                # Store historical price data if we have a price
                 if data.get('last'):
                     PriceHistory.objects.create(
                         cryptocurrency=crypto,
@@ -75,7 +71,9 @@ class CryptoDataService:
                     )
             
             # Cache the results
-            cache.set(self.CACHE_KEY, updated_cryptos, timeout=settings.CACHE_TTL)
+            if updated_cryptos:
+                cache.set(self.CACHE_KEY, updated_cryptos, timeout=settings.CACHE_TTL)
+            
             return updated_cryptos
             
         except Exception as e:

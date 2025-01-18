@@ -12,19 +12,19 @@
             <div class="col-md-4">
                 <div class="stat-card">
                     <h5>Total Market Cap</h5>
-                    <h3 class="mb-0">${{ market_stats.total_market_cap|intcomma }}</h3>
+                    <h3 class="mb-0">${{ total_market_cap|intcomma }}</h3>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card">
                     <h5>24h Volume</h5>
-                    <h3 class="mb-0">${{ market_stats.total_volume_24h|intcomma }}</h3>
+                    <h3 class="mb-0">${{ total_volume_24h|intcomma }}</h3>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card">
                     <h5>BTC Dominance</h5>
-                    <h3 class="mb-0">{{ market_stats.btc_dominance|floatformat:2 }}%</h3>
+                    <h3 class="mb-0">{{ btc_dominance|floatformat:2 }}%</h3>
                 </div>
             </div>
         </div>
